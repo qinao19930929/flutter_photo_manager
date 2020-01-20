@@ -106,7 +106,7 @@ class Plugin {
       "width": width,
       "height": height,
       "id": id,
-      "format": format.index,
+      "format": format!=null?format.index:null,
     });
   }
 
