@@ -42,7 +42,8 @@ class ConvertUtils {
         ..typeInt = item["type"]
         ..longitude = item["lng"]
         ..latitude = item["lat"]
-        ..title = item["title"];
+        ..title = item["title"]
+        ..fileSize = item["fileSize"];
 
       result.add(entity);
     }
@@ -68,7 +69,8 @@ class ConvertUtils {
       ..typeInt = data["type"]
       ..longitude = data["lng"]
       ..latitude = data["lat"]
-      ..title = data["title"];
+      ..title = data["title"]
+      ..fileSize = data["fileSize"];
 
     return entity;
   }

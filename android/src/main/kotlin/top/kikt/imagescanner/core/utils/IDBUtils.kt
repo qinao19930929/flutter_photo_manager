@@ -34,7 +34,8 @@ interface IDBUtils {
         MediaStore.MediaColumns.HEIGHT, // 高
         MediaStore.MediaColumns.DATE_MODIFIED, // 修改时间
         MediaStore.MediaColumns.MIME_TYPE, // 高
-        MediaStore.MediaColumns.DATE_TAKEN //日期
+        MediaStore.MediaColumns.DATE_TAKEN,//日期
+        MediaStore.MediaColumns.SIZE //大小
     )
 
     val storeVideoKeys = arrayOf(
@@ -49,7 +50,8 @@ interface IDBUtils {
         MediaStore.MediaColumns.HEIGHT, // 高
         MediaStore.MediaColumns.DATE_MODIFIED, // 修改时间
         MediaStore.MediaColumns.MIME_TYPE, // 高
-        MediaStore.MediaColumns.DURATION //时长
+        MediaStore.MediaColumns.DURATION, //时长
+        MediaStore.MediaColumns.SIZE //大小
     )
 
     val typeKeys = arrayOf(

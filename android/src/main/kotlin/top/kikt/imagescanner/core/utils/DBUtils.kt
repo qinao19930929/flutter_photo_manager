@@ -168,8 +168,9 @@ object DBUtils : IDBUtils {
 
       val lat = cursor.getDouble(MediaStore.Images.ImageColumns.LATITUDE)
       val lng = cursor.getDouble(MediaStore.Images.ImageColumns.LONGITUDE)
+      val fileSize= cursor.getInt(MediaStore.MediaColumns.SIZE)
 
-      val asset = AssetEntity(id, path, duration, date, width, height, getMediaType(type), displayName, modifiedDate)
+      val asset = AssetEntity(id, path, duration, date, width, height, getMediaType(type), displayName, modifiedDate,fileSize)
 
       if (lat != 0.0) {
         asset.lat = lat
@@ -232,8 +233,9 @@ object DBUtils : IDBUtils {
 
       val lat = cursor.getDouble(MediaStore.Images.ImageColumns.LATITUDE)
       val lng = cursor.getDouble(MediaStore.Images.ImageColumns.LONGITUDE)
+      val fileSize = cursor.getInt(MediaStore.MediaColumns.SIZE)
 
-      val asset = AssetEntity(id, path, duration, date, width, height, getMediaType(type), displayName, modifiedDate)
+      val asset = AssetEntity(id, path, duration, date, width, height, getMediaType(type), displayName, modifiedDate,fileSize)
 
       if (lat != 0.0) {
         asset.lat = lat
@@ -279,8 +281,9 @@ object DBUtils : IDBUtils {
       val modifiedDate = cursor.getLong(MediaStore.MediaColumns.DATE_MODIFIED)
       val lat = cursor.getDouble(MediaStore.Images.ImageColumns.LATITUDE)
       val lng = cursor.getDouble(MediaStore.Images.ImageColumns.LONGITUDE)
+      val fileSize= cursor.getInt(MediaStore.MediaColumns.SIZE)
 
-      val dbAsset = AssetEntity(databaseId, path, duration, date, width, height, getMediaType(type), displayName, modifiedDate)
+      val dbAsset = AssetEntity(databaseId, path, duration, date, width, height, getMediaType(type), displayName, modifiedDate,fileSize)
 
       if (lat != 0.0) {
         dbAsset.lat = lat

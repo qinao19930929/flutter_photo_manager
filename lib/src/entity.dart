@@ -116,6 +116,8 @@ class AssetEntity {
 
   String path;
 
+  int fileSize;
+
   /// It is [title] in Android.
   ///
   /// It is [PHAsset valueForKey:@"originalFilename"] in iOS.

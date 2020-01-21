@@ -125,8 +125,9 @@ object AndroidQDBUtils : IDBUtils {
             val height = cursor.getInt(MediaStore.MediaColumns.HEIGHT)
             val displayName = cursor.getString(MediaStore.Images.Media.DISPLAY_NAME)
             val modifiedDate = cursor.getLong(MediaStore.MediaColumns.DATE_MODIFIED)
+            val fileSize = cursor.getInt(MediaStore.MediaColumns.SIZE);
 
-            val asset = AssetEntity(id, path, duration, date, width, height, getMediaType(type), displayName, modifiedDate)
+            val asset = AssetEntity(id, path, duration, date, width, height, getMediaType(type), displayName, modifiedDate,fileSize)
             list.add(asset)
             cache.putAsset(asset)
         }
@@ -179,8 +180,10 @@ object AndroidQDBUtils : IDBUtils {
             val height = cursor.getInt(MediaStore.MediaColumns.HEIGHT)
             val displayName = cursor.getString(MediaStore.Images.Media.DISPLAY_NAME)
             val modifiedDate = cursor.getLong(MediaStore.MediaColumns.DATE_MODIFIED)
+            val fileSize= cursor.getInt(MediaStore.MediaColumns.SIZE)
+            println("fileSize1"+fileSize)
 
-            val asset = AssetEntity(id, path, duration, date, width, height, getMediaType(type), displayName, modifiedDate)
+            val asset = AssetEntity(id, path, duration, date, width, height, getMediaType(type), displayName, modifiedDate,fileSize)
             list.add(asset)
             cache.putAsset(asset)
         }
@@ -215,8 +218,9 @@ object AndroidQDBUtils : IDBUtils {
                 val height = cursor.getInt(MediaStore.MediaColumns.HEIGHT)
                 val displayName = cursor.getString(MediaStore.MediaColumns.DISPLAY_NAME)
                 val modifiedDate = cursor.getLong(MediaStore.MediaColumns.DATE_MODIFIED)
+                val fileSize= cursor.getInt(MediaStore.MediaColumns.SIZE);
 
-                val dbAsset = AssetEntity(databaseId, path, duration, date, width, height, getMediaType(type), displayName, modifiedDate)
+                val dbAsset = AssetEntity(databaseId, path, duration, date, width, height, getMediaType(type), displayName, modifiedDate,fileSize)
                 cacheContainer.putAsset(dbAsset)
 
                 cursor.close()
