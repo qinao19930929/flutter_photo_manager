@@ -158,28 +158,30 @@ object DBUtils : IDBUtils {
     while (cursor.moveToNext()) {
       val id = cursor.getString(MediaStore.MediaColumns._ID)
       val path = cursor.getString(MediaStore.MediaColumns.DATA)
-      val date = cursor.getLong(MediaStore.Images.Media.DATE_TAKEN)
-      val modifiedDate = cursor.getLong(MediaStore.MediaColumns.DATE_MODIFIED)
-      val type = cursor.getInt(MediaStore.Files.FileColumns.MEDIA_TYPE)
-      val duration = if (requestType == 1) 0 else cursor.getLong(MediaStore.Video.VideoColumns.DURATION)
-      val width = cursor.getInt(MediaStore.MediaColumns.WIDTH)
-      val height = cursor.getInt(MediaStore.MediaColumns.HEIGHT)
-      val displayName = File(path).name
+      if (!path.startsWith("/data/user/")) {
+        val date = cursor.getLong(MediaStore.Images.Media.DATE_TAKEN)
+        val modifiedDate = cursor.getLong(MediaStore.MediaColumns.DATE_MODIFIED)
+        val type = cursor.getInt(MediaStore.Files.FileColumns.MEDIA_TYPE)
+        val duration = if (requestType == 1) 0 else cursor.getLong(MediaStore.Video.VideoColumns.DURATION)
+        val width = cursor.getInt(MediaStore.MediaColumns.WIDTH)
+        val height = cursor.getInt(MediaStore.MediaColumns.HEIGHT)
+        val displayName = File(path).name
 
-      val lat = cursor.getDouble(MediaStore.Images.ImageColumns.LATITUDE)
-      val lng = cursor.getDouble(MediaStore.Images.ImageColumns.LONGITUDE)
+        val lat = cursor.getDouble(MediaStore.Images.ImageColumns.LATITUDE)
+        val lng = cursor.getDouble(MediaStore.Images.ImageColumns.LONGITUDE)
 
-      val asset = AssetEntity(id, path, duration, date, width, height, getMediaType(type), displayName, modifiedDate)
+        val asset = AssetEntity(id, path, duration, date, width, height, getMediaType(type), displayName, modifiedDate)
 
-      if (lat != 0.0) {
-        asset.lat = lat
+        if (lat != 0.0) {
+          asset.lat = lat
+        }
+        if (lng != 0.0) {
+          asset.lng = lng
+        }
+
+        list.add(asset)
+        cache.putAsset(asset)
       }
-      if (lng != 0.0) {
-        asset.lng = lng
-      }
-
-      list.add(asset)
-      cache.putAsset(asset)
     }
 
     cursor.close()

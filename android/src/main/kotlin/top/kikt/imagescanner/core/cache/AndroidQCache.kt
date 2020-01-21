@@ -10,6 +10,7 @@ import top.kikt.imagescanner.util.LogUtils
 import java.io.File
 import java.io.FileOutputStream
 
+
 /// create 2019-09-10 by cai
 
 @RequiresApi(Build.VERSION_CODES.Q)
@@ -43,12 +44,16 @@ class AndroidQCache {
     if (isOrigin) {
       uri = MediaStore.setRequireOriginal(uri)
     }
-    
-    val inputStream = contentResolver.openInputStream(uri)
-    val outputStream = FileOutputStream(targetFile)
-    outputStream.use {
-      inputStream?.copyTo(it)
+    try {
+      val inputStream = contentResolver.openInputStream(uri)
+      val outputStream = FileOutputStream(targetFile)
+      outputStream.use {
+        inputStream?.copyTo(it)
+      }
+    }catch (e: Exception){
+
     }
+
     return targetFile
   }
   
