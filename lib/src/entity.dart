@@ -114,6 +114,8 @@ class AssetEntity {
   /// Nullable in iOS. If you must need it, See [FilterOption.needTitle] or use [titleAsync].
   String title;
 
+  String path;
+
   /// It is [title] in Android.
   ///
   /// It is [PHAsset valueForKey:@"originalFilename"] in iOS.

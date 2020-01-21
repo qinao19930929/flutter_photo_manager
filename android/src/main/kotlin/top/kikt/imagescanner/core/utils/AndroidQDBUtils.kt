@@ -118,19 +118,17 @@ object AndroidQDBUtils : IDBUtils {
         while (cursor.moveToNext()) {
             val id = cursor.getString(MediaStore.MediaColumns._ID)
             val path = cursor.getString(MediaStore.MediaColumns.DATA)
-            if (!path.startsWith("/data/user/")) {
-                val date = cursor.getLong(MediaStore.Images.Media.DATE_TAKEN)
-                val type = cursor.getInt(MediaStore.Files.FileColumns.MEDIA_TYPE)
-                val duration = if (requestType == 1) 0 else cursor.getLong(MediaStore.Video.VideoColumns.DURATION)
-                val width = cursor.getInt(MediaStore.MediaColumns.WIDTH)
-                val height = cursor.getInt(MediaStore.MediaColumns.HEIGHT)
-                val displayName = cursor.getString(MediaStore.Images.Media.DISPLAY_NAME)
-                val modifiedDate = cursor.getLong(MediaStore.MediaColumns.DATE_MODIFIED)
+            val date = cursor.getLong(MediaStore.Images.Media.DATE_TAKEN)
+            val type = cursor.getInt(MediaStore.Files.FileColumns.MEDIA_TYPE)
+            val duration = if (requestType == 1) 0 else cursor.getLong(MediaStore.Video.VideoColumns.DURATION)
+            val width = cursor.getInt(MediaStore.MediaColumns.WIDTH)
+            val height = cursor.getInt(MediaStore.MediaColumns.HEIGHT)
+            val displayName = cursor.getString(MediaStore.Images.Media.DISPLAY_NAME)
+            val modifiedDate = cursor.getLong(MediaStore.MediaColumns.DATE_MODIFIED)
 
-                val asset = AssetEntity(id, path, duration, date, width, height, getMediaType(type), displayName, modifiedDate)
-                list.add(asset)
-                cache.putAsset(asset)
-            }
+            val asset = AssetEntity(id, path, duration, date, width, height, getMediaType(type), displayName, modifiedDate)
+            list.add(asset)
+            cache.putAsset(asset)
         }
 
         cursor.close()

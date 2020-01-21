@@ -35,6 +35,7 @@ object ConvertUtils {
     for (entity in list) {
       val element = mapOf(
           "id" to entity.id,
+          "path" to entity.path,
           "duration" to entity.duration / 1000,
           "type" to entity.type,
           "createDt" to entity.createDt / 1000,
@@ -57,6 +58,7 @@ object ConvertUtils {
 
     val data = mapOf(
         "id" to entity.id,
+            "path" to entity.path,
         "duration" to entity.duration,
         "type" to entity.type,
         "createDt" to entity.createDt / 1000,
