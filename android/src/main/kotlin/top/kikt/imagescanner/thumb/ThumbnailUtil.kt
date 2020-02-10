@@ -38,7 +38,6 @@ object ThumbnailUtil {
                             resource.compress(compressFormat, 100, bos)
                             resultHandler.reply(bos.toByteArray())
                         } catch (e: Exception) {
-                            LogUtils.error("get thumbnail by glide error", e)
                             resultHandler.reply(null)
                         }
                     }
@@ -68,7 +67,6 @@ object ThumbnailUtil {
                             resource.compress(Bitmap.CompressFormat.JPEG, 100, bos)
                             resultHandler.reply(bos.toByteArray())
                         } catch (e: Exception) {
-                            LogUtils.error("get thumbnail with video error", e)
                             resultHandler.reply(null)
                         }
                     }
@@ -92,7 +90,6 @@ object ThumbnailUtil {
                             resource.compress(Bitmap.CompressFormat.JPEG, 100, bos)
                             callback(bos.toByteArray())
                         } catch (e: Exception) {
-                            LogUtils.error("get thumbnail by glide error", e)
                             callback(null)
                         }
                     }
@@ -123,7 +120,6 @@ object ThumbnailUtil {
                             resource.compress(compressFormat, 100, bos)
                             callback(bos.toByteArray())
                         } catch (e: Exception) {
-                            LogUtils.error("get thumbnail by glide error", e)
                             callback(null)
                         }
                     }
