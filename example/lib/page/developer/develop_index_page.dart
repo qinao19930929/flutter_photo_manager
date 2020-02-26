@@ -3,8 +3,9 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:image_scanner_example/page/dev_title_page.dart';
 import 'package:photo_manager/photo_manager.dart';
+
+import 'dev_title_page.dart';
 
 class DeveloperIndexPage extends StatefulWidget {
   @override
@@ -38,7 +39,7 @@ class _DeveloperIndexPageState extends State<DeveloperIndexPage> {
   }
 
   void _upload() async {
-    final path = await PhotoManager.getImageAsset();
+    final path = await PhotoManager.getAssetPathList(type: RequestType.image);
     final assetList = await path[0].getAssetListRange(start: 0, end: 5);
     final asset = assetList[0];
 

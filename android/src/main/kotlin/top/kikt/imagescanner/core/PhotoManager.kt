@@ -4,7 +4,7 @@ import android.content.Context
 import android.os.Build
 import android.util.Log
 import top.kikt.imagescanner.core.entity.AssetEntity
-import top.kikt.imagescanner.core.entity.FilterOptions
+import top.kikt.imagescanner.core.entity.FilterOption
 import top.kikt.imagescanner.core.entity.GalleryEntity
 import top.kikt.imagescanner.core.utils.AndroidQDBUtils
 import top.kikt.imagescanner.core.utils.DBUtils
@@ -26,14 +26,6 @@ class PhotoManager(private val context: Context) {
 
   var useOldApi: Boolean = false
 
-  var androidQExperimental: Boolean = false
-    set(value) {
-      field = value
-    }
-    get() {
-      return Build.VERSION.SDK_INT >= 29
-    }
-
   private val dbUtils: IDBUtils
     get() = if (useOldApi || Build.VERSION.SDK_INT < 29) {
       DBUtils
@@ -41,7 +33,7 @@ class PhotoManager(private val context: Context) {
       AndroidQDBUtils
     }
 
-  fun getGalleryList(type: Int, timeStamp: Long, hasAll: Boolean, option: FilterOptions): List<GalleryEntity> {
+  fun getGalleryList(type: Int, timeStamp: Long, hasAll: Boolean, option: FilterOption): List<GalleryEntity> {
     val fromDb = dbUtils.getGalleryList(context, type, timeStamp, option)
 
     if (!hasAll) {
@@ -60,20 +52,20 @@ class PhotoManager(private val context: Context) {
     return listOf(entity) + fromDb
   }
 
-  fun getAssetList(galleryId: String, page: Int, pageCount: Int, typeInt: Int = 0, timestamp: Long, option: FilterOptions): List<AssetEntity> {
+  fun getAssetList(galleryId: String, page: Int, pageCount: Int, typeInt: Int = 0, timestamp: Long, option: FilterOption): List<AssetEntity> {
     val gId = if (galleryId == ALL_ID) "" else galleryId
     return dbUtils.getAssetFromGalleryId(context, gId, page, pageCount, typeInt, timestamp, option)
   }
 
 
-  fun getAssetListWithRange(galleryId: String, type: Int, start: Int, end: Int, timestamp: Long, option: FilterOptions): List<AssetEntity> {
+  fun getAssetListWithRange(galleryId: String, type: Int, start: Int, end: Int, timestamp: Long, option: FilterOption): List<AssetEntity> {
     val gId = if (galleryId == ALL_ID) "" else galleryId
     return dbUtils.getAssetFromGalleryIdRange(context, gId, start, end, type, timestamp, option)
   }
 
   fun getThumb(id: String, width: Int, height: Int, format: Int, resultHandler: ResultHandler) {
     try {
-      if (!androidQExperimental) {
+      if (!isAndroidQ) {
         val asset = dbUtils.getAssetEntity(context, id)
         if (asset == null) {
           resultHandler.replyError("The asset not found!")
@@ -92,27 +84,33 @@ class PhotoManager(private val context: Context) {
         }
       }
     } catch (e: Exception) {
-      Log.e(LogUtils.TAG, "get thumb error", e)
+      Log.e(LogUtils.TAG, "get $id thumb error, width : $width, height: $height", e)
+      dbUtils.logRowWithId(context, id)
       resultHandler.replyError("201", "get thumb error", e)
     }
   }
 
-  fun getOriginBytes(id: String, cacheOriginBytes: Boolean, resultHandler: ResultHandler) {
+  fun getOriginBytes(id: String, cacheOriginBytes: Boolean, haveLocationPermission: Boolean, resultHandler: ResultHandler) {
     val asset = dbUtils.getAssetEntity(context, id)
 
     if (asset == null) {
       resultHandler.replyError("The asset not found")
       return
     }
-    if (!isAndroidQ) {
-      val byteArray = File(asset.path).readBytes()
-      resultHandler.reply(byteArray)
-    } else {
-      val byteArray = dbUtils.getOriginBytes(context, asset)
-      resultHandler.reply(byteArray)
-      if (cacheOriginBytes) {
-        dbUtils.cacheOriginFile(context, asset, byteArray)
+    try {
+      if (!isAndroidQ) {
+        val byteArray = File(asset.path).readBytes()
+        resultHandler.reply(byteArray)
+      } else {
+        val byteArray = dbUtils.getOriginBytes(context, asset, haveLocationPermission)
+        resultHandler.reply(byteArray)
+        if (cacheOriginBytes) {
+          dbUtils.cacheOriginFile(context, asset, byteArray)
+        }
       }
+    } catch (e: Exception) {
+      dbUtils.logRowWithId(context, id)
+      resultHandler.replyError("202", "get origin Bytes error", e)
     }
   }
 
@@ -120,7 +118,7 @@ class PhotoManager(private val context: Context) {
     dbUtils.clearCache()
   }
 
-  fun getPathEntity(id: String, type: Int, timestamp: Long, option: FilterOptions): GalleryEntity? {
+  fun getPathEntity(id: String, type: Int, timestamp: Long, option: FilterOption): GalleryEntity? {
     if (id == ALL_ID) {
       val allGalleryList = dbUtils.getGalleryList(context, type, timestamp, option)
       return if (allGalleryList.isEmpty()) {

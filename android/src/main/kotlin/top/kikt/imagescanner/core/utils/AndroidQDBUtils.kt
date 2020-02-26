@@ -14,7 +14,7 @@ import androidx.exifinterface.media.ExifInterface
 import top.kikt.imagescanner.core.cache.AndroidQCache
 import top.kikt.imagescanner.core.cache.CacheContainer
 import top.kikt.imagescanner.core.entity.AssetEntity
-import top.kikt.imagescanner.core.entity.FilterOptions
+import top.kikt.imagescanner.core.entity.FilterOption
 import top.kikt.imagescanner.core.entity.GalleryEntity
 import top.kikt.imagescanner.util.LogUtils
 import java.io.ByteArrayInputStream
@@ -35,7 +35,7 @@ object AndroidQDBUtils : IDBUtils {
     )
 
     @SuppressLint("Recycle")
-    override fun getGalleryList(context: Context, requestType: Int, timeStamp: Long, option: FilterOptions): List<GalleryEntity> {
+    override fun getGalleryList(context: Context, requestType: Int, timeStamp: Long, option: FilterOption): List<GalleryEntity> {
         val list = ArrayList<GalleryEntity>()
 
         val args = ArrayList<String>()
@@ -56,10 +56,7 @@ object AndroidQDBUtils : IDBUtils {
 
         while (cursor.moveToNext()) {
             val galleryId = cursor.getString(0)
-            val galleryName = cursor.getString(cursor.getColumnIndex(MediaStore.Images.Media.BUCKET_DISPLAY_NAME));
-            if (galleryName == null) {
-                continue
-            }
+            val galleryName = cursor.getString(cursor.getColumnIndex(MediaStore.Images.Media.BUCKET_DISPLAY_NAME))?: "";
 
             if (nameMap.containsKey(galleryId)) {
                 countMap[galleryId] = countMap[galleryId]!! + 1
@@ -85,7 +82,7 @@ object AndroidQDBUtils : IDBUtils {
     }
 
     @SuppressLint("Recycle")
-    override fun getAssetFromGalleryId(context: Context, galleryId: String, page: Int, pageSize: Int, requestType: Int, timeStamp: Long, option: FilterOptions, cacheContainer: CacheContainer?): List<AssetEntity> {
+    override fun getAssetFromGalleryId(context: Context, galleryId: String, page: Int, pageSize: Int, requestType: Int, timeStamp: Long, option: FilterOption, cacheContainer: CacheContainer?): List<AssetEntity> {
         val cache = cacheContainer ?: this.cacheContainer
 
         val isAll = galleryId.isEmpty()
@@ -138,7 +135,7 @@ object AndroidQDBUtils : IDBUtils {
 
     }
 
-    override fun getAssetFromGalleryIdRange(context: Context, gId: String, start: Int, end: Int, requestType: Int, timestamp: Long, option: FilterOptions): List<AssetEntity> {
+    override fun getAssetFromGalleryIdRange(context: Context, gId: String, start: Int, end: Int, requestType: Int, timestamp: Long, option: FilterOption): List<AssetEntity> {
         val cache = cacheContainer
 
         val isAll = gId.isEmpty()
@@ -234,7 +231,7 @@ object AndroidQDBUtils : IDBUtils {
     }
 
     @SuppressLint("Recycle")
-    override fun getGalleryEntity(context: Context, galleryId: String, type: Int, timeStamp: Long, option: FilterOptions): GalleryEntity? {
+    override fun getGalleryEntity(context: Context, galleryId: String, type: Int, timeStamp: Long, option: FilterOption): GalleryEntity? {
         val uri = allUri
         val projection = IDBUtils.storeBucketKeys
 
@@ -260,9 +257,9 @@ object AndroidQDBUtils : IDBUtils {
         val cursor = context.contentResolver.query(uri, projection, selection, args.toTypedArray(), null)
                 ?: return null
 
-        val name: String
+        val name: String?
         if (cursor.moveToNext()) {
-            name = cursor.getString(1)
+            name = cursor.getString(1) ?: ""
         } else {
             cursor.close()
             return null
@@ -322,14 +319,14 @@ object AndroidQDBUtils : IDBUtils {
         return uri
     }
 
-    override fun getOriginBytes(context: Context, asset: AssetEntity): ByteArray {
+    override fun getOriginBytes(context: Context, asset: AssetEntity, haveLocationPermission: Boolean): ByteArray {
         val file = androidQCache.getCacheFile(context, asset.id, asset.displayName, true)
         if (file.exists()) {
             LogUtils.info("the origin bytes come from ${file.absolutePath}")
             return file.readBytes()
         }
 
-        val uri = getUri(asset, true)
+        val uri = getUri(asset, haveLocationPermission)
         val inputStream = context.contentResolver.openInputStream(uri)
 
         LogUtils.info("the cache file no exists, will read from MediaStore: $uri")

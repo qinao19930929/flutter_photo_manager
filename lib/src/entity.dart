@@ -22,7 +22,7 @@ class AssetPathEntity {
   /// path asset type.
   RequestType _type;
 
-  final FilterOption filterOption;
+  final FilterOptionGroup filterOption;
 
   /// The value used internally by the user.
   /// Used to indicate the value that should be available inside the path.
@@ -215,7 +215,7 @@ class AssetEntity {
   /// Use [originBytes]
   ///
   /// The property will be remove in 0.5.0.
-  @Deprecated("Use FileMode.append instead")
+  @Deprecated("Use originBytes instead")
   Future<Uint8List> get fullData => PhotoManager._getFullDataWithId(id);
 
   /// The raw data stored in the device, the data may be large.
