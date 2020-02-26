@@ -1,8 +1,7 @@
 package top.kikt.imagescanner.core.utils
 
-import top.kikt.imagescanner.core.entity.AssetEntity
-import top.kikt.imagescanner.core.entity.FilterOptions
-import top.kikt.imagescanner.core.entity.GalleryEntity
+import top.kikt.imagescanner.AssetType
+import top.kikt.imagescanner.core.entity.*
 
 /// create 2019-09-05 by cai
 
@@ -13,10 +12,10 @@ object ConvertUtils {
 
     for (entity in list) {
       val element = mapOf(
-          "id" to entity.id,
-          "name" to entity.name,
-          "length" to entity.length,
-          "isAll" to entity.isAll
+              "id" to entity.id,
+              "name" to entity.name,
+              "length" to entity.length,
+              "isAll" to entity.isAll
       )
 
       if (entity.length > 0) {
@@ -25,7 +24,7 @@ object ConvertUtils {
     }
 
     return mapOf(
-        "data" to data
+            "data" to data
     )
   }
 
@@ -51,7 +50,7 @@ object ConvertUtils {
     }
 
     return mapOf(
-        "data" to data
+            "data" to data
     )
   }
 
@@ -73,15 +72,34 @@ object ConvertUtils {
     )
 
     return mapOf(
-        "data" to data
+            "data" to data
     )
   }
 
-  fun convertFilterOptionsFromMap(map: Map<*, *>): FilterOptions {
-    val filterOptions = FilterOptions()
+  private fun getOptionWithKey(map: Map<*, *>, key: String): FilterCond {
+    if (map.containsKey(key)) {
+      val value = map[key]
+      if (value is Map<*, *>) {
+        return convertToOption(value)
+      }
+    }
+    return FilterCond()
+  }
+
+  fun getOptionFromType(map: Map<*, *>, type: AssetType): FilterCond {
+    if (type == AssetType.Video) {
+      return getOptionWithKey(map, "video")
+    } else if (type == AssetType.Image) {
+      return getOptionWithKey(map, "image")
+    }
+    return FilterCond()
+  }
+
+  private fun convertToOption(map: Map<*, *>): FilterCond {
+    val filterOptions = FilterCond()
     filterOptions.isShowTitle = map["title"] as Boolean
 
-    val sizeConstraint = FilterOptions.SizeConstraint()
+    val sizeConstraint = FilterCond.SizeConstraint()
     filterOptions.sizeConstraint = sizeConstraint
     val sizeMap = map["size"] as Map<*, *>
     sizeConstraint.minWidth = sizeMap["minWidth"] as Int
@@ -89,12 +107,17 @@ object ConvertUtils {
     sizeConstraint.minHeight = sizeMap["minHeight"] as Int
     sizeConstraint.maxHeight = sizeMap["maxHeight"] as Int
 
-    val durationConstraint = FilterOptions.DurationConstraint()
+    val durationConstraint = FilterCond.DurationConstraint()
     filterOptions.durationConstraint = durationConstraint
     val durationMap = map["duration"] as Map<*, *>
     durationConstraint.min = (durationMap["min"] as Int).toLong()
     durationConstraint.max = (durationMap["max"] as Int).toLong()
 
     return filterOptions
+  }
+
+
+  fun convertFilterOptionsFromMap(map: Map<*, *>): FilterOption {
+    return FilterOption(map)
   }
 }

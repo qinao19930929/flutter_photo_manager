@@ -10,8 +10,9 @@ import android.provider.MediaStore.VOLUME_EXTERNAL
 import androidx.exifinterface.media.ExifInterface
 import top.kikt.imagescanner.core.cache.CacheContainer
 import top.kikt.imagescanner.core.entity.AssetEntity
-import top.kikt.imagescanner.core.entity.FilterOptions
+import top.kikt.imagescanner.core.entity.FilterOption
 import top.kikt.imagescanner.core.entity.GalleryEntity
+import top.kikt.imagescanner.util.LogUtils
 import java.io.InputStream
 
 
@@ -55,13 +56,13 @@ interface IDBUtils {
     )
 
     val typeKeys = arrayOf(
-        MediaStore.Files.FileColumns.MEDIA_TYPE,
-        MediaStore.Images.Media.DISPLAY_NAME
+            MediaStore.Files.FileColumns.MEDIA_TYPE,
+            MediaStore.Images.Media.DISPLAY_NAME
     )
 
     val storeBucketKeys = arrayOf(
-        MediaStore.Images.Media.BUCKET_ID,
-        MediaStore.Images.ImageColumns.BUCKET_DISPLAY_NAME
+            MediaStore.Images.Media.BUCKET_ID,
+            MediaStore.Images.ImageColumns.BUCKET_DISPLAY_NAME
     )
 
   }
@@ -84,13 +85,13 @@ interface IDBUtils {
       "AND $size"
     } else {
       "AND (${MediaStore.Files.FileColumns.MEDIA_TYPE} = ${MediaStore.Files.FileColumns.MEDIA_TYPE_VIDEO} or (" +
-          "${MediaStore.Files.FileColumns.MEDIA_TYPE} = ${MediaStore.Files.FileColumns.MEDIA_TYPE_IMAGE} AND $size))"
+              "${MediaStore.Files.FileColumns.MEDIA_TYPE} = ${MediaStore.Files.FileColumns.MEDIA_TYPE_IMAGE} AND $size))"
     }
   }
 
-  fun getGalleryList(context: Context, requestType: Int = 0, timeStamp: Long, option: FilterOptions): List<GalleryEntity>
+  fun getGalleryList(context: Context, requestType: Int = 0, timeStamp: Long, option: FilterOption): List<GalleryEntity>
 
-  fun getAssetFromGalleryId(context: Context, galleryId: String, page: Int, pageSize: Int, requestType: Int = 0, timeStamp: Long, option: FilterOptions, cacheContainer: CacheContainer? = null): List<AssetEntity>
+  fun getAssetFromGalleryId(context: Context, galleryId: String, page: Int, pageSize: Int, requestType: Int = 0, timeStamp: Long, option: FilterOption, cacheContainer: CacheContainer? = null): List<AssetEntity>
 
   fun getAssetEntity(context: Context, id: String): AssetEntity?
 
@@ -118,7 +119,7 @@ interface IDBUtils {
     return getDouble(getColumnIndex(columnName))
   }
 
-  fun getGalleryEntity(context: Context, galleryId: String, type: Int, timeStamp: Long, option: FilterOptions): GalleryEntity?
+  fun getGalleryEntity(context: Context, galleryId: String, type: Int, timeStamp: Long, option: FilterOption): GalleryEntity?
 
   fun clearCache()
 
@@ -126,7 +127,7 @@ interface IDBUtils {
 
   fun getThumb(context: Context, id: String, width: Int, height: Int, type: Int?): Bitmap?
 
-  fun getAssetFromGalleryIdRange(context: Context, gId: String, start: Int, end: Int, requestType: Int, timestamp: Long, option: FilterOptions): List<AssetEntity>
+  fun getAssetFromGalleryIdRange(context: Context, gId: String, start: Int, end: Int, requestType: Int, timestamp: Long, option: FilterOption): List<AssetEntity>
 
   fun deleteWithIds(context: Context, ids: List<String>): List<String> {
     val where = "${MediaStore.MediaColumns._ID} in (?)"
@@ -159,47 +160,75 @@ interface IDBUtils {
 
   fun getExif(context: Context, id: String): ExifInterface?
 
-  fun getOriginBytes(context: Context, asset: AssetEntity): ByteArray
+  fun getOriginBytes(context: Context, asset: AssetEntity, haveLocationPermission: Boolean): ByteArray
 
   fun cacheOriginFile(context: Context, asset: AssetEntity, byteArray: ByteArray)
 
-  fun getCondFromType(type: Int, filterOptions: FilterOptions, args: ArrayList<String>): String {
-    var condString = ""
-
-    val sizeCond = filterOptions.sizeCond()
-    val sizeArgs = filterOptions.sizeArgs()
-    val durationCond = filterOptions.durationCond()
-    val durationArgs = filterOptions.durationArgs()
-
+  fun getCondFromType(type: Int, filterOption: FilterOption, args: ArrayList<String>): String {
+    var condString: String
     val typeKey = MediaStore.Files.FileColumns.MEDIA_TYPE
 
     when (type) {
       1 -> {
-        condString = "AND ${MediaStore.Files.FileColumns.MEDIA_TYPE} = ?"
+        val imageCond = filterOption.imageOption
+
+        val sizeCond = imageCond.sizeCond()
+        val sizeArgs = imageCond.sizeArgs()
+        condString = "AND $typeKey = ?"
         args.add(MediaStore.Files.FileColumns.MEDIA_TYPE_IMAGE.toString())
 
         condString += "AND $sizeCond"
         args.addAll(sizeArgs)
       }
       2 -> {
-        condString = "AND ${MediaStore.Files.FileColumns.MEDIA_TYPE} = ?"
-        args.add(MediaStore.Files.FileColumns.MEDIA_TYPE_VIDEO.toString())
+        val videoCond = filterOption.videoOption
 
-        condString += "AND $sizeCond"
-        args.addAll(sizeArgs)
+        val durationCond = videoCond.durationCond()
+        val durationArgs = videoCond.durationArgs()
+
+        condString = "AND $typeKey = ?"
+        args.add(MediaStore.Files.FileColumns.MEDIA_TYPE_VIDEO.toString())
 
         condString += "AND $durationCond"
         args.addAll(durationArgs)
       }
       else -> {
-        condString = "AND ($typeKey = ? OR ($typeKey = ? AND $durationCond)) AND $sizeCond"
+        val imageCond = filterOption.imageOption
+        val sizeCond = imageCond.sizeCond()
+        val sizeArgs = imageCond.sizeArgs()
+        val imageCondString = "$typeKey = ? AND $sizeCond"
         args.add(MediaStore.Files.FileColumns.MEDIA_TYPE_IMAGE.toString())
+        args.addAll(sizeArgs)
+
+        val videoCond = filterOption.videoOption
+        val durationCond = videoCond.durationCond()
+        val durationArgs = videoCond.durationArgs()
+        val videoCondString = "$typeKey = ? AND $durationCond"
         args.add(MediaStore.Files.FileColumns.MEDIA_TYPE_VIDEO.toString())
         args.addAll(durationArgs)
-        args.addAll(sizeArgs)
+
+        condString = "AND (($imageCondString) OR ($videoCondString))"
       }
     }
 
     return condString
   }
+
+  fun logRowWithId(context: Context, id: String) {
+    if (LogUtils.isLog) {
+      val splitter = "".padStart(40, '-')
+      LogUtils.info("log error row $id start $splitter")
+      val cursor = context.contentResolver.query(allUri, null, "${MediaStore.Files.FileColumns._ID} = ?", arrayOf(id), null)
+      cursor?.use {
+        val names = it.columnNames
+        if (cursor.moveToNext()) {
+          for (i in 0 until names.count()) {
+            LogUtils.info("${names[i]} : ${cursor.getString(i)}")
+          }
+        }
+      }
+      LogUtils.info("log error row $id end $splitter")
+    }
+  }
+
 }
