@@ -5,6 +5,8 @@ import android.content.ContentUris
 import android.content.ContentValues
 import android.content.Context
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.media.MediaMetadataRetriever
 import android.net.Uri
 import android.os.Build
 import android.provider.MediaStore
@@ -56,7 +58,8 @@ object AndroidQDBUtils : IDBUtils {
 
         while (cursor.moveToNext()) {
             val galleryId = cursor.getString(0)
-            val galleryName = cursor.getString(cursor.getColumnIndex(MediaStore.Images.Media.BUCKET_DISPLAY_NAME))?: "";
+            val galleryName = cursor.getString(cursor.getColumnIndex(MediaStore.Images.Media.BUCKET_DISPLAY_NAME))
+                    ?: "";
 
             if (nameMap.containsKey(galleryId)) {
                 countMap[galleryId] = countMap[galleryId]!! + 1
@@ -124,7 +127,7 @@ object AndroidQDBUtils : IDBUtils {
             val modifiedDate = cursor.getLong(MediaStore.MediaColumns.DATE_MODIFIED)
             val fileSize = cursor.getInt(MediaStore.MediaColumns.SIZE);
 
-            val asset = AssetEntity(id, path, duration, date, width, height, getMediaType(type), displayName, modifiedDate,fileSize)
+            val asset = AssetEntity(id, path, duration, date, width, height, getMediaType(type), displayName, modifiedDate, fileSize)
             list.add(asset)
             cache.putAsset(asset)
         }
@@ -177,10 +180,10 @@ object AndroidQDBUtils : IDBUtils {
             val height = cursor.getInt(MediaStore.MediaColumns.HEIGHT)
             val displayName = cursor.getString(MediaStore.Images.Media.DISPLAY_NAME)
             val modifiedDate = cursor.getLong(MediaStore.MediaColumns.DATE_MODIFIED)
-            val fileSize= cursor.getInt(MediaStore.MediaColumns.SIZE)
-            println("fileSize1"+fileSize)
+            val fileSize = cursor.getInt(MediaStore.MediaColumns.SIZE)
+            println("fileSize1" + fileSize)
 
-            val asset = AssetEntity(id, path, duration, date, width, height, getMediaType(type), displayName, modifiedDate,fileSize)
+            val asset = AssetEntity(id, path, duration, date, width, height, getMediaType(type), displayName, modifiedDate, fileSize)
             list.add(asset)
             cache.putAsset(asset)
         }
@@ -215,9 +218,9 @@ object AndroidQDBUtils : IDBUtils {
                 val height = cursor.getInt(MediaStore.MediaColumns.HEIGHT)
                 val displayName = cursor.getString(MediaStore.MediaColumns.DISPLAY_NAME)
                 val modifiedDate = cursor.getLong(MediaStore.MediaColumns.DATE_MODIFIED)
-                val fileSize= cursor.getInt(MediaStore.MediaColumns.SIZE);
+                val fileSize = cursor.getInt(MediaStore.MediaColumns.SIZE);
 
-                val dbAsset = AssetEntity(databaseId, path, duration, date, width, height, getMediaType(type), displayName, modifiedDate,fileSize)
+                val dbAsset = AssetEntity(databaseId, path, duration, date, width, height, getMediaType(type), displayName, modifiedDate, fileSize)
                 cacheContainer.putAsset(dbAsset)
 
                 cursor.close()
@@ -300,9 +303,43 @@ object AndroidQDBUtils : IDBUtils {
         if (type == null) {
             return null
         }
-        val uri = getUri(id, type)
-        return context.contentResolver.loadThumbnail(uri, Size(width, height), null)
+        var uri = getUri(id, type)
+        var bitmap: Bitmap? = null
+        try {
+            bitmap = context.contentResolver.loadThumbnail(uri, Size(width, height), null)
+        } catch (e: Exception) {
+        }
+
+        if (type != 1 && bitmap == null) {
+            try {
+                bitmap = MediaStore.Video.Thumbnails.getThumbnail(context.contentResolver, id.toLong(), MediaStore.Video.Thumbnails.MINI_KIND, null)
+            } catch (e: Exception) {
+            }
+        }
+
+        return bitmap
     }
+
+    /**
+     * 获取本地视频的第一帧
+     */
+    fun getLocalVideoThumbnail(filePath: String): Bitmap? {
+        var bitmap: Bitmap? = null
+        //MediaMetadataRetriever 是android中定义好的一个类，提供了统一的接口，用于从输入的媒体文件中取得帧和元数据；
+        val retriever = MediaMetadataRetriever()
+        try {
+            //根据文件路径获取缩略图
+            retriever.setDataSource(filePath)
+            //获得第一帧图片
+            bitmap = retriever.getFrameAtTime()
+        } catch (e: Exception) {
+            e.printStackTrace()
+        } finally {
+            retriever.release()
+        }
+        return bitmap
+    }
+
 
     private fun getUri(asset: AssetEntity, isOrigin: Boolean = false): Uri = getUri(asset.id, asset.type, isOrigin)
 
