@@ -210,16 +210,24 @@ object AndroidQDBUtils : IDBUtils {
         cursor?.use {
             if (cursor.moveToNext()) {
                 val databaseId = cursor.getString(MediaStore.MediaColumns._ID)
-                val path = cursor.getString(MediaStore.MediaColumns.DATA)
                 val date = cursor.getLong(MediaStore.Images.Media.DATE_TAKEN)
                 val type = cursor.getInt(MediaStore.Files.FileColumns.MEDIA_TYPE)
+                var path = cursor.getString(MediaStore.MediaColumns.DATA)
                 val duration = if (type == MediaStore.Files.FileColumns.MEDIA_TYPE_IMAGE) 0 else cursor.getLong(MediaStore.Video.VideoColumns.DURATION)
                 val width = cursor.getInt(MediaStore.MediaColumns.WIDTH)
                 val height = cursor.getInt(MediaStore.MediaColumns.HEIGHT)
                 val displayName = cursor.getString(MediaStore.MediaColumns.DISPLAY_NAME)
                 val modifiedDate = cursor.getLong(MediaStore.MediaColumns.DATE_MODIFIED)
-                val fileSize = cursor.getInt(MediaStore.MediaColumns.SIZE);
+                val fileSize = cursor.getInt(MediaStore.MediaColumns.SIZE)
+                try {
+                    path = if (type == 1) {
+                        MediaStore.Images.Media.EXTERNAL_CONTENT_URI.buildUpon().appendPath(databaseId).build().toString()
+                    } else {
+                        MediaStore.Video.Media.EXTERNAL_CONTENT_URI.buildUpon().appendPath(databaseId).build().toString()
+                    }
+                } catch (e: Exception) {
 
+                }
                 val dbAsset = AssetEntity(databaseId, path, duration, date, width, height, getMediaType(type), displayName, modifiedDate, fileSize)
                 cacheContainer.putAsset(dbAsset)
 
