@@ -22,6 +22,7 @@ object ThumbnailUtil {
         Glide.with(ctx)
                 .asBitmap()
                 .load(File(path))
+                .override(width, height)
                 .into(object : BitmapTarget(width, height) {
                     override fun onResourceReady(resource: Bitmap, transition: Transition<in Bitmap>?) {
                         super.onResourceReady(resource, transition)
@@ -35,7 +36,7 @@ object ThumbnailUtil {
                                         Bitmap.CompressFormat.JPEG
                                     }
 
-                            resource.compress(compressFormat, 100, bos)
+                            resource.compress(compressFormat, 80, bos)
                             resultHandler.reply(bos.toByteArray())
                         } catch (e: Exception) {
                             resultHandler.reply(null)
