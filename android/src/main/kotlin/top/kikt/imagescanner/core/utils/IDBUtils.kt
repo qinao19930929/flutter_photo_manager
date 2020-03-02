@@ -108,7 +108,7 @@ interface IDBUtils {
   }
 
   fun Cursor.getString(columnName: String): String {
-    return getString(getColumnIndex(columnName))
+    return getString(getColumnIndex(columnName)) ?: ""
   }
 
   fun Cursor.getLong(columnName: String): Long {
